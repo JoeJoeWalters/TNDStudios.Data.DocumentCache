@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TNDStudios.Data.DocumentCache.Cosmos
 {
@@ -25,6 +26,11 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
         /// Cosmos client for the document handler
         /// </summary>
         private DocumentClient client;
+
+        /// <summary>
+        /// Link to the client collection precached so we don't have to build it each time
+        /// </summary>
+        private Uri collectionLink;
 
         /// <summary>
         /// Cosmos Database Name
@@ -107,6 +113,9 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
                     Id = DataCollection
                 });
 
+            // Cache the collection link for use later
+            this.collectionLink = UriFactory.CreateDocumentCollectionUri(DatabaseName, DataCollection);
+
             // Log that we have connected 
             logger.LogInformation($"Successfully Connected Document Handler to Cosmos DB - {DatabaseName}/{DataCollection}");
 
@@ -157,8 +166,7 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
                 if (de.StatusCode == HttpStatusCode.NotFound)
                 {
                     // Try and add the document in
-                    await this.client.CreateDocumentAsync(
-                        UriFactory.CreateDocumentCollectionUri(DatabaseName, DataCollection), document);
+                    await this.client.CreateDocumentAsync(collectionLink, document);
 
                     // Didn't fail so must be good
                     result = true;
@@ -175,19 +183,41 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
         /// </summary>
         /// <param name="id">The id of the document</param>
         /// <returns>The document from the cache</returns>
-        public T Get(string id) { throw new NotImplementedException(); }
+        public T Get(string id)
+        {
+            var response = Task.Run(async () => 
+            {
+                return await this.client.ReadDocumentAsync(
+                    UriFactory.CreateDocumentUri(DatabaseName, DataCollection, id));
+            }).Result;
+
+            if (response != null)
+                return response.Resource.GetPropertyValue<T>("Data");
+            else
+                return default(T);
+        }
 
         /// <summary>
         /// Get all items that are marked a having not been processed yet
         /// </summary>
         /// <returns>A list of unprocessed items</returns>
-        public List<T> GetToProcess(Int32 maxRecords) { throw new NotImplementedException(); }
+        public List<T> GetToProcess(Int32 maxRecords)
+        {
+            // Get a reference to the list of items that have not been processed
+            IQueryable<DocumentWrapper<T>> querySalesOrder = client
+                        .CreateDocumentQuery<DocumentWrapper<T>>(collectionLink)
+                        .Where(so => !so.Processed);
+
+            // Run the query and cast it to the needed list
+            return querySalesOrder.Select(document => document.Data).ToList<T>();
+        }
 
         /// <summary>
         /// Mark a set of documents as processed
         /// </summary>
         /// <param name="documentsToMark">A list of document id's to mark as processed</param>
         /// <returns>The id's of the documents that did get marked</returns>
+        /// https://github.com/Azure/azure-cosmos-dotnet-v2/blob/f374cc601f4cf08d11c88f0c3fa7dcefaf7ecfe8/samples/code-samples/DocumentManagement/Program.cs#L211
         public List<String> MarkAsProcessed(List<String> documentsToMark) { throw new NotImplementedException(); }
 
         /// <summary>
