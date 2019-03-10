@@ -10,6 +10,8 @@ using System.Linq;
 
 namespace TNDStudios.Data.DocumentCache.Cosmos
 {
+    /// Useful reference:
+    /// https://github.com/Azure/azure-cosmos-dotnet-v2/blob/f374cc601f4cf08d11c88f0c3fa7dcefaf7ecfe8/samples/code-samples/DocumentManagement/Program.cs#L211
     public class CosmosDocumentHandler<T> : IDocumentHandler<T>
     {
         /// <summary>
@@ -185,6 +187,8 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
         /// <returns>The document from the cache</returns>
         public T Get(string id)
         {
+            Connect();
+
             var response = Task.Run(async () => 
             {
                 return await this.client.ReadDocumentAsync(
@@ -203,6 +207,8 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
         /// <returns>A list of unprocessed items</returns>
         public List<T> GetToProcess(Int32 maxRecords)
         {
+            Connect();
+
             // Get a reference to the list of items that have not been processed
             IQueryable<DocumentWrapper<T>> queryDocuments = client
                         .CreateDocumentQuery<DocumentWrapper<T>>(collectionLink)
@@ -217,10 +223,11 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
         /// </summary>
         /// <param name="documentsToMark">A list of document id's to mark as processed</param>
         /// <returns>The id's of the documents that did get marked</returns>
-        /// https://github.com/Azure/azure-cosmos-dotnet-v2/blob/f374cc601f4cf08d11c88f0c3fa7dcefaf7ecfe8/samples/code-samples/DocumentManagement/Program.cs#L211
         public List<String> MarkAsProcessed(List<String> documentsToMark)
         {
             List<String> result = new List<string>() { };
+
+            Connect();
 
             IQueryable<DocumentWrapper<T>> queryDocuments = client
                         .CreateDocumentQuery<DocumentWrapper<T>>(collectionLink)
@@ -255,6 +262,8 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
         public Boolean Purge()
         {
             Boolean result = true;
+
+            Connect();
 
             // Get a reference to the list of items that have been processed
             IQueryable<DocumentWrapper<T>> queryDocuments = client
