@@ -5,7 +5,7 @@
     <Authors>The Naked Developer</Authors>
     <Description>Quick caching of documents to a store for processing later</Description>
     <Copyright>The Naked Developer</Copyright>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <AssemblyName>TNDStudios.Data.DocumentCache</AssemblyName>
     <RootNamespace>TNDStudios.Data.DocumentCache</RootNamespace>
   </PropertyGroup>
