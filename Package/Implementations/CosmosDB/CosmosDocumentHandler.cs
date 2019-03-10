@@ -5,6 +5,7 @@ using System.Data.Common;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace TNDStudios.Data.DocumentCache.Cosmos
 {
@@ -120,10 +121,10 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
         /// <param name="id">The value of the new document to be put in storage (as the json has to be case sensitive)</param>
         /// <param name="data">The data to be wrapped up in the cache document</param>
         /// <returns>Success Result</returns>
-        public Boolean SendToCache(String id, T data)
-            => Task.Run(async () => { return await SendToCacheInternal(id, data); }).Result;
+        public Boolean Save(String id, T data)
+            => Task.Run(async () => { return await SaveInternal(id, data); }).Result;
 
-        private async Task<Boolean> SendToCacheInternal(
+        private async Task<Boolean> SaveInternal(
             String id,
             T data)
         {
@@ -168,5 +169,31 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
 
             return result;
         }
+        
+        /// <summary>
+        /// Get the object from the cache by the id reference
+        /// </summary>
+        /// <param name="id">The id of the document</param>
+        /// <returns>The document from the cache</returns>
+        public T Get(string id) { throw new NotImplementedException(); }
+
+        /// <summary>
+        /// Get all items that are marked a having not been processed yet
+        /// </summary>
+        /// <returns>A list of unprocessed items</returns>
+        public List<T> GetToProcess(Int32 maxRecords) { throw new NotImplementedException(); }
+
+        /// <summary>
+        /// Mark a set of documents as processed
+        /// </summary>
+        /// <param name="documentsToMark">A list of document id's to mark as processed</param>
+        /// <returns>The id's of the documents that did get marked</returns>
+        public List<String> MarkAsProcessed(List<String> documentsToMark) { throw new NotImplementedException(); }
+
+        /// <summary>
+        /// Purge (Delete) all items marked as processed
+        /// </summary>
+        /// <returns>If the purge was successful</returns>
+        public Boolean Purge() { throw new NotImplementedException(); }
     }
 }

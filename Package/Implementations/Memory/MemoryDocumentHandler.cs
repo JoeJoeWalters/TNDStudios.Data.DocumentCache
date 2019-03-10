@@ -1,24 +1,36 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
+using System.Text;
 
-namespace TNDStudios.Data.DocumentCache
+namespace TNDStudios.Data.DocumentCache.Implementations.Memory
 {
-    public interface IDocumentHandler<T>
+    public class MemoryDocumentHandler<T> : IDocumentHandler<T>
     {
+        /// <summary>
+        /// Logger inherited from the setup 
+        /// </summary>
+        private ILogger logger;
+
+        /// <summary>
+        /// Where documents are stored in memory
+        /// </summary>
+        private List<T> documentCache;
+
         /// <summary>
         /// Public view of the currently connection
         /// </summary>
-        string ConnectionString { get; }
+        public String ConnectionString { get; internal set; } = String.Empty;
 
         /// <summary>
-        /// Database Name for the cache
+        /// Cosmos Database Name
         /// </summary>
-        string DatabaseName { get; }
+        public String DatabaseName { get; internal set; } = String.Empty;
 
         /// <summary>
-        /// Collection (table / collection / grouping) for this cache
+        /// Cosmos Collection for this cache
         /// </summary>
-        string DataCollection { get; }
+        public String DataCollection { get; internal set; } = String.Empty;
 
         /// <summary>
         /// Send the object to the cache
@@ -27,32 +39,35 @@ namespace TNDStudios.Data.DocumentCache
         /// <param name="id">The value of the new document to be put in storage (as the json has to be case sensitive)</param>
         /// <param name="data">The data to be wrapped up in the cache document</param>
         /// <returns>Success Result</returns>
-        Boolean Save(string id, T data);
+        public bool Save(string id, T data)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Get the object from the cache by the id reference
         /// </summary>
         /// <param name="id">The id of the document</param>
         /// <returns>The document from the cache</returns>
-        T Get(string id);
+        public T Get(string id) { throw new NotImplementedException(); }
 
         /// <summary>
         /// Get all items that are marked a having not been processed yet
         /// </summary>
         /// <returns>A list of unprocessed items</returns>
-        List<T> GetToProcess(Int32 maxRecords);
+        public List<T> GetToProcess(Int32 maxRecords) { throw new NotImplementedException(); }
 
         /// <summary>
         /// Mark a set of documents as processed
         /// </summary>
         /// <param name="documentsToMark">A list of document id's to mark as processed</param>
         /// <returns>The id's of the documents that did get marked</returns>
-        List<String> MarkAsProcessed(List<String> documentsToMark);
+        public List<String> MarkAsProcessed(List<String> documentsToMark) { throw new NotImplementedException(); }
 
         /// <summary>
         /// Purge (Delete) all items marked as processed
         /// </summary>
         /// <returns>If the purge was successful</returns>
-        Boolean Purge();
+        public Boolean Purge() { throw new NotImplementedException(); }
     }
 }
