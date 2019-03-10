@@ -4,11 +4,17 @@ using System;
 using System.Data.Common;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace TNDStudios.Data.DocumentCache.Cosmos
 {
     public class CosmosDocumentHandler<T> : IDocumentHandler<T>
     {
+        /// <summary>
+        /// Logger inherited from the setup 
+        /// </summary>
+        private ILogger logger;
+
         /// <summary>
         /// Public view of the currently connection
         /// </summary>
@@ -32,11 +38,13 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
         /// <summary>
         /// Default Constructor
         /// </summary>
-        public CosmosDocumentHandler(String connectionString, String databaseName, String dataCollection)
+        public CosmosDocumentHandler(ILogger logger, String connectionString, String databaseName, String dataCollection)
         {
             this.ConnectionString = connectionString;
             this.DatabaseName = databaseName;
             this.DataCollection = dataCollection;
+
+            this.logger = logger;
         }
 
         /// <summary>
@@ -97,6 +105,9 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
                 {
                     Id = DataCollection
                 });
+
+            // Log that we have connected 
+            logger.LogInformation($"Successfully Connected Document Handler to Cosmos DB - {DatabaseName}/{DataCollection}");
 
             // Send the new document client back to use
             return client;
