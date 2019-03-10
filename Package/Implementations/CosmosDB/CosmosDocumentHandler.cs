@@ -237,8 +237,8 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
                 .ToList<DocumentWrapper<T>>()
                 .ForEach(async document => 
                     {
-                        try
-                        {
+                        //try
+                        //{
                             // Mark as processed
                             document.Processed = true;
                             document.ProcessedDateTime = DateTime.UtcNow;
@@ -248,8 +248,8 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
 
                             // Didn't fail, add it to the success list to be returned
                             result.Add(document.Id);
-                        }
-                        catch { }
+                        /*}
+                        catch { }*/
                     });
 
             return result;
@@ -268,7 +268,7 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
             // Get a reference to the list of items that have been processed
             IQueryable<DocumentWrapper<T>> queryDocuments = client
                         .CreateDocumentQuery<DocumentWrapper<T>>(collectionLink)
-                        .Where(so => !so.Processed);
+                        .Where(so => so.Processed);
 
             // Run the query and cast it to the needed list
             queryDocuments
