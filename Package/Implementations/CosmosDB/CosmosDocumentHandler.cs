@@ -218,7 +218,35 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
         /// <param name="documentsToMark">A list of document id's to mark as processed</param>
         /// <returns>The id's of the documents that did get marked</returns>
         /// https://github.com/Azure/azure-cosmos-dotnet-v2/blob/f374cc601f4cf08d11c88f0c3fa7dcefaf7ecfe8/samples/code-samples/DocumentManagement/Program.cs#L211
-        public List<String> MarkAsProcessed(List<String> documentsToMark) { throw new NotImplementedException(); }
+        public List<String> MarkAsProcessed(List<String> documentsToMark)
+        {
+            List<String> result = new List<string>() { };
+
+            IQueryable<DocumentWrapper<T>> queryDocuments = client
+                        .CreateDocumentQuery<DocumentWrapper<T>>(collectionLink)
+                        .Where(so => documentsToMark.Contains(so.Id));
+
+            queryDocuments
+                .ToList<DocumentWrapper<T>>()
+                .ForEach(async document => 
+                    {
+                        try
+                        {
+                            // Mark as processed
+                            document.Processed = true;
+                            document.ProcessedDateTime = DateTime.UtcNow;
+
+                            // Wait for Cosmos to do the update
+                            await client.UpsertDocumentAsync(collectionLink, document);
+
+                            // Didn't fail, add it to the success list to be returned
+                            result.Add(document.Id);
+                        }
+                        catch { }
+                    });
+
+            return result;
+        }
 
         /// <summary>
         /// Purge (Delete) all items marked as processed
