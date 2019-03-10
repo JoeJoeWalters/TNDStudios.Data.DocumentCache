@@ -204,12 +204,12 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
         public List<T> GetToProcess(Int32 maxRecords)
         {
             // Get a reference to the list of items that have not been processed
-            IQueryable<DocumentWrapper<T>> querySalesOrder = client
+            IQueryable<DocumentWrapper<T>> queryDocuments = client
                         .CreateDocumentQuery<DocumentWrapper<T>>(collectionLink)
                         .Where(so => !so.Processed);
 
             // Run the query and cast it to the needed list
-            return querySalesOrder.Select(document => document.Data).ToList<T>();
+            return queryDocuments.Select(document => document.Data).ToList<T>();
         }
 
         /// <summary>
@@ -224,6 +224,35 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
         /// Purge (Delete) all items marked as processed
         /// </summary>
         /// <returns>If the purge was successful</returns>
-        public Boolean Purge() { throw new NotImplementedException(); }
+        public Boolean Purge()
+        {
+            Boolean result = true;
+
+            // Get a reference to the list of items that have been processed
+            IQueryable<DocumentWrapper<T>> queryDocuments = client
+                        .CreateDocumentQuery<DocumentWrapper<T>>(collectionLink)
+                        .Where(so => !so.Processed);
+
+            // Run the query and cast it to the needed list
+            queryDocuments
+                .Select(document => document.Id)
+                .ToList<String>()
+                .ForEach(async documentId => 
+                    {
+                        try
+                        {
+                            // Async can't return so just skip instead if one has already failed
+                            // TODO: Do this a better way later when you have more time
+                            if (result)
+                                await client.DeleteDocumentAsync(UriFactory.CreateDocumentUri(DatabaseName, DataCollection, documentId));
+                        }
+                        catch
+                        {
+                            result = false;
+                        }
+                    });
+
+            return result; // Got to the end
+        }
     }
 }
