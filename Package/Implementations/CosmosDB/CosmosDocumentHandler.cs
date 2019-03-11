@@ -179,7 +179,7 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
 
             return result;
         }
-        
+
         /// <summary>
         /// Get the object from the cache by the id reference
         /// </summary>
@@ -189,7 +189,7 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
         {
             Connect();
 
-            var response = Task.Run(async () => 
+            var response = Task.Run(async () =>
             {
                 return await this.client.ReadDocumentAsync(
                     UriFactory.CreateDocumentUri(DatabaseName, DataCollection, id));
@@ -235,21 +235,21 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
 
             queryDocuments
                 .ToList<DocumentWrapper<T>>()
-                .ForEach(async document => 
+                .ForEach(document =>
                     {
-                        //try
-                        //{
+                        try
+                        {
                             // Mark as processed
                             document.Processed = true;
                             document.ProcessedDateTime = DateTime.UtcNow;
 
                             // Wait for Cosmos to do the update
-                            await client.UpsertDocumentAsync(collectionLink, document);
+                            client.UpsertDocumentAsync(collectionLink, document).Wait();
 
                             // Didn't fail, add it to the success list to be returned
                             result.Add(document.Id);
-                        /*}
-                        catch { }*/
+                        }
+                        catch { }
                     });
 
             return result;
@@ -274,14 +274,14 @@ namespace TNDStudios.Data.DocumentCache.Cosmos
             queryDocuments
                 .Select(document => document.Id)
                 .ToList<String>()
-                .ForEach(async documentId => 
+                .ForEach(documentId =>
                     {
                         try
                         {
                             // Async can't return so just skip instead if one has already failed
                             // TODO: Do this a better way later when you have more time
                             if (result)
-                                await client.DeleteDocumentAsync(UriFactory.CreateDocumentUri(DatabaseName, DataCollection, documentId));
+                                client.DeleteDocumentAsync(UriFactory.CreateDocumentUri(DatabaseName, DataCollection, documentId)).Wait();
                         }
                         catch
                         {
